@@ -1,52 +1,79 @@
 const express = require('express');
 const uidGenerator = require('node-unique-id-generator');
-
+const router = express.Router();
 const {Book} = require('../Models');
-
-const fileMiddleware = require('../middleware/file');
-
 
 const lib = {
     book: [],
 };
 
 [1, 2, 3].map(el => {
-    const newBook = new Book(`${el}`, `title ${el}`, `desc ${el}`, `authors ${el}`, `favorite ${el}`, `fileCover ${el}`, `fileName ${el}`, `/public/img/${el}.png`);
+    const newBook = new Book(`title ${el}`, `desc ${el}`, `authors ${el}`, `favorite ${el}`, `fileCover ${el}`, `fileName ${el}`, `/public/img/${el}.png`);
 
     lib.book.push(newBook);
 });
 
-const app = express.Router();
 
 
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
     const {book} = lib;
-    res.json(book);
+    res.render("books/index", {
+        title: "Books",
+        books: book,
+    });
 });
 
+router.get('/create', (req, res) => {
+    res.render("books/create", {
+        title: "Books | create",
+        book: {},
+    });
+});
 
-app.get('/:id', (req, res) => {
+router.post('/create', (req, res) => {
+    const {book} = lib;
+    const {title, description, authors, favorite} = req.body;
+    const newBook = new Book(title, description, authors, favorite);
+    book.push(newBook);
+
+    res.redirect('/books')
+});
+
+router.get('/:id', (req, res) => {
     const {book} = lib;
     const {id} = req.params;
     const idx = book.findIndex(el => el.id === id);
 
     if (idx !== -1) {
-        res.json(book[idx]);
+        res.render("books/view", {
+            title: "Book | view",
+            book: book[idx],
+        });
     } else {
-        res.status(404);
-        res.json("book not found");
+        res.status(404).redirect('/404');
     }
 });
 
-
-
-
-
-app.put('/:id', (req, res) => {
+router.get('/update/:id', (req, res) => {
     const {book} = lib;
-    const {title, description, authors, favorite, fileCover, fileName} = req.body;
     const {id} = req.params;
     const idx = book.findIndex(el => el.id === id);
+
+    if (idx !== -1) {
+        res.render("books/update", {
+            title: "Book | view",
+            book: book[idx],
+        });
+    } else {
+        res.status(404).redirect('/404');
+    }
+});
+
+router.post('/update/:id', (req, res) => {
+  const {book} = lib;
+  const {id} = req.params;
+  const {title, description, authors, favorite} = req.body;
+  const idx = book.findIndex(el => el.id === id);
 
     if (idx !== -1) {
         book[idx] = {
@@ -54,66 +81,27 @@ app.put('/:id', (req, res) => {
             title,
             description,
             authors,
-            favorite,
-            fileCover,
-            fileName,
+            favorite
         };
-        res.json(book[idx]);
+        res.redirect(`/books/${id}`);
     } else {
-        res.status(404);
-        res.json("book not found");
+        res.status(404).redirect('/404');
     }
 });
 
-
-app.delete('/:id', (req, res) => {
+router.post('/delete/:id', (req, res) => {
     const {book} = lib;
     const {id} = req.params;
     const idx = book.findIndex(el => el.id === id);
 
     if (idx !== -1) {
         book.splice(idx, 1);
-        res.json("OK");
+        res.redirect(`/books`);
     } else {
-        res.status(404);
-        res.json("book not found");
+        res.status(404).redirect('/404');
     }
 });
 
 
-app.post('/', fileMiddleware.single('fileBook'), (req, res) => {
-    const {book} = lib;
-    const {title, description, authors, favorite, fileCover, fileName} = req.body;
-    if (req.file) {
-        const {destination} = req.file;
-        const {filename} = req.file;
-        const newBook = new Book(uidGenerator.generateUniqueId(), title, description, authors, favorite, fileCover, fileName, `/${destination}/${filename}`);
-        book.push(newBook);
 
-        res.status(201);
-        res.json(newBook);
-    } else {
-        res.json(null);
-    }
-});
-
-app.get('/:id/download', (req, res) => {
-    const {book} = lib;
-    const {id} = req.params;
-    const idx = book.findIndex(el => el.id === id);
-
-    if (idx !== -1) {
-        res.download(__dirname+`/..${book[idx].fileBook}`, `${book[idx].title.replace(/ /g,'')}.png`, err=>{
-            if (err){
-                res.status(404).json();
-            }
-        });
-    } else {
-        res.status(404);
-        res.json("book not found");
-    }
-
-});
-
-
-module.exports = app;
+module.exports = router;

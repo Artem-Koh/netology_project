@@ -1,21 +1,28 @@
 const express = require('express');
-const cors = require('cors');
+const bodyParser = require("body-parser");
+
 const loggerMiddleware = require('./middleware/logger');
 const errorMiddleware = require('./middleware/error');
-const bodyParser = require("body-parser");
-const bookRouter = require('./routes/books');
-const userRouter = require('./routes/user');
 
+const indexRouter = require('./routes/index');
+const bookApiRouter = require('./routes/api/books');
+const bookRouter = require('./routes/books');
 const app = express();
-app.use(bodyParser());
-app.use(cors());
 app.use(loggerMiddleware);
 
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.set("view engine", "ejs");
+
+
+
+app.use('/', indexRouter);
+app.use('/books', bookRouter);
+app.use('/api/books', bookApiRouter);
+
+
 app.use('/public', express.static(__dirname+"/public"));
-
-
-app.use('/api/user', userRouter);
-app.use('/api/books', bookRouter);
 
 
 app.use(errorMiddleware);
