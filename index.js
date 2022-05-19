@@ -21,7 +21,6 @@ app.use('/', indexRouter);
 app.use('/books', bookRouter);
 app.use('/api/books', bookApiRouter);
 
-
 app.use('/public', express.static(__dirname+"/public"));
 
 

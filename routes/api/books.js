@@ -21,7 +21,7 @@ const app = express.Router();
 
 app.get('/', (req, res) => {
     const {book} = lib;
-    res.json(book);
+    return res.json(book);
 });
 
 
@@ -31,10 +31,10 @@ app.get('/:id', (req, res) => {
     const idx = book.findIndex(el => el.id === id);
 
     if (idx !== -1) {
-        res.json(book[idx]);
+        return res.json(book[idx]);
     } else {
-        res.status(404);
-        res.json("book not found");
+        return res.status(404);
+        return res.json("book not found");
     }
 });
 
