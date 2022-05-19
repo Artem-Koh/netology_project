@@ -1,6 +1,10 @@
 FROM node
 
+<<<<<<< HEAD
 WORKDIR /appMain
+=======
+WORKDIR /app
+>>>>>>> 066b672389fbf6d9ddec6305c106943836650c52
 
 COPY ./package*.json ./
 RUN npm install

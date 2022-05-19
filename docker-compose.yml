@@ -16,7 +16,10 @@ services:
     build: .
     ports:
       - 81:3000
+<<<<<<< HEAD
     depends_on:
       - counter
     links:
       - counter
+=======
+>>>>>>> 066b672389fbf6d9ddec6305c106943836650c52
