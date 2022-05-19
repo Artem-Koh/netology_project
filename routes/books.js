@@ -2,6 +2,7 @@ const express = require('express');
 const uidGenerator = require('node-unique-id-generator');
 const router = express.Router();
 const {Book} = require('../Models');
+const request = require('request');
 
 const lib = {
     book: [],
@@ -17,14 +18,14 @@ const lib = {
 
 router.get('/', (req, res) => {
     const {book} = lib;
-    res.render("books/index", {
+    return res.render("books/index", {
         title: "Books",
         books: book,
     });
 });
 
 router.get('/create', (req, res) => {
-    res.render("books/create", {
+    return res.render("books/create", {
         title: "Books | create",
         book: {},
     });
@@ -36,22 +37,38 @@ router.post('/create', (req, res) => {
     const newBook = new Book(title, description, authors, favorite);
     book.push(newBook);
 
-    res.redirect('/books')
+    return res.redirect('/books')
 });
 
 router.get('/:id', (req, res) => {
     const {book} = lib;
     const {id} = req.params;
     const idx = book.findIndex(el => el.id === id);
+    request.get({
+      headers: {'content-type': 'application/json'},
+      url: `http://localhost:80/counter/${id}/incr`,
+    })
+    setTimeout(() => {
+      request.get({
+      headers: {'content-type': 'application/json'},
+      url: `http://localhost:80/counter/${id}`,
+      json: true,
 
-    if (idx !== -1) {
-        res.render("books/view", {
-            title: "Book | view",
-            book: book[idx],
-        });
-    } else {
-        res.status(404).redirect('/404');
-    }
+    }, (err, data, body) => {
+        if (!err) {
+          cnt = JSON.stringify(data.body.cnt).match(/\d+/);
+          if (idx !== -1) {
+              return res.render("books/view", {
+                  title: "Book | view",
+                  book: book[idx],
+                  res: cnt,
+              });
+          } else {
+              return res.status(404).redirect('/404');
+          }
+        }
+    })}, 1500);
+
 });
 
 router.get('/update/:id', (req, res) => {
@@ -60,12 +77,12 @@ router.get('/update/:id', (req, res) => {
     const idx = book.findIndex(el => el.id === id);
 
     if (idx !== -1) {
-        res.render("books/update", {
+        return res.render("books/update", {
             title: "Book | view",
             book: book[idx],
         });
     } else {
-        res.status(404).redirect('/404');
+        return res.status(404).redirect('/404');
     }
 });
 
