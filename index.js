@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require("body-parser");
-
+const mongoose = require('mongoose');
 const loggerMiddleware = require('./middleware/logger');
 const errorMiddleware = require('./middleware/error');
 
@@ -20,16 +20,25 @@ app.set("view engine", "ejs");
 app.use('/', indexRouter);
 app.use('/books', bookRouter);
 app.use('/api/books', bookApiRouter);
-
-app.use('/public', express.static(__dirname+"/public"));
+//app.use('/public', express.static(__dirname+"/public"));
 
 
 app.use(errorMiddleware);
 
 
-
-
+const UrlDB = process.env.DB_HOST;
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+async function start() {
+    try {
+
+        await mongoose.connect(UrlDB);
+
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        })
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+start();
